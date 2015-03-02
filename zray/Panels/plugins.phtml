@@ -1,0 +1,171 @@
+<?php 
+$tableParams = array(
+	'tableId' 			=> 'wordpress-plugins-tree',
+    'tableWidth'        => '4',
+);
+?>
+
+    
+<div>
+    
+    <div>
+        <div>
+            <div class="pieChartDiv">
+				<canvas id="plugins-statistics-chart" width="170" height="170" />
+			</div>
+            
+			<div class="pieLegendDiv" id="plugins-chart-lagend" width="100" height="100" >
+				<u>Load Times:</u>
+			</div>
+        </div>
+   </div>
+   
+   <div class="pieTableDiv">
+     <?php echo $this->zrayTable($tableParams); //zrayTableHtml ?>
+   </div>
+        
+</div>
+
+
+<script type="text/javascript">
+
+<?php echo $params['resources']['chart']; ?>
+
+(function() {
+	var storage = zray.getStorage('plugins');
+	// create main table
+	var maintable = zray.createGeneralTreeTable(storage, jQuery('#<?php echo $tableParams['tableId']; ?>'));
+	maintable.setColumns([{
+		label: 'name',
+		propertyName: 'name',
+		width: '35%',
+		sortable:true,
+		attributes: {'class': 'zdb-tree-table-cell-path zdb-ellipsis zdb-monospace'},
+		getHtml: function(val, rec) {
+			var cushion = $zendDevBar('<div>');
+			/// either the node has children or this is an object with properties
+			if (rec.children > 0) {
+				cushion.addClass('zdb-tree-table-cell-path-expandable');
+			}
+			cushion.addClass('zdb-tree-table-cell-path-display');
+			
+			if (rec.parent.length > 1) {
+				cushion.css('margin-left', (18 * rec.level) + 'px');
+			}
+
+			cushion.click(function(event){
+				$zendDevBar(event.target).parent('td').click();
+			});
+
+			var formattedText = val;
+			if (typeof formattedText == 'string' && formattedText.trim().length == 0) {
+				formattedText = '[Empty String Key]';
+				cushion.addClass('zdb-tree-table-system-data');
+			} else if (formattedText > 32) {
+				cushion.attr('title', formattedText);
+				formattedText = zendDevBar.shorten(formattedText, 32);
+			}
+			
+			return cushion.text(formattedText);
+		}
+	},
+	{
+		label: 'Version',
+		propertyName: 'version',
+		width: '100',
+		attributes: {'class': 'zdb-monospace zdb-ellipsis'},
+		sortable:true,
+		getHtml: function(val, rec) {
+			var cushion = $zendDevBar('<div>');
+			cushion.attr('title', val);
+			return cushion.text(val);
+		}
+	},
+	{
+		label: 'State',
+		propertyName: 'state',
+		width: '80',
+		sortable:true,
+		attributes: {'class': 'zdb-monospace zdb-ellipsis'},
+		getHtml: function(val, rec) {
+			var cushion = $zendDevBar('<div>');
+			cushion.attr('title', val);
+			return cushion.text(val);
+		}
+	},
+	{
+		label: 'Time (ms)',
+		propertyName: 'loadtime',
+		width: '90',
+		sortable:true,
+		attributes: {'class': 'zdb-monospace zdb-ellipsis'}
+	},
+	{
+		label: 'Path',
+		propertyName: 'path',
+		sortable:true,
+		attributes: {'class': 'zdb-monospace zdb-ellipsis'},
+		getHtml: function(val, rec) {
+			var cushion = $zendDevBar('<div>');
+			cushion.attr('title', val);
+			return cushion.text(val);
+		}
+	}]);
+	// create main table - end
+
+	zray.registerDataHandler('wordpress', 'plugins', function(extensionData, requestData) {
+		storage.setData(extensionData);
+		jQuery('[data-name="zrayExtension:wordpress/plugins"] .zdb-toolbar-info').append(' ('+extensionData.length+')');
+	});
+
+
+	(function() {
+		zray.registerDataHandler('wordpress', 'pluginsStats', function(extensionData, requestData) {
+			var colors = [
+	            {'color': '#F7464A', 'highlight': '#FF5A5E'},
+	            {'color': '#46BFBD', 'highlight': '#5AD3D1'},
+	            {'color': '#FDB45C', 'highlight': '#FFC870'},
+	            {'color': '#949FB1', 'highlight': '#A8B3C5'},
+	            {'color': '#4D5360', 'highlight': '#616774'},
+	            {'color': '#b48ead', 'highlight': '#b48eb3'},
+	            {'color': '#5B90BF', 'highlight': '#5bbabf'}
+	        ];
+			if(!extensionData || extensionData.length==0){
+				var extensionData = [{
+						name: 'No Load Time',
+						loadtime: 1
+					}];
+			}
+			var pieData = [];
+			var loadtime=0;
+			jQuery.each(extensionData, function(key, data) {
+				loadtime+=data.loadtime*1;
+				var tooltip=data.name;
+				if(data.name.length>7){
+					tooltip=data.name.substring(0,6)+'.';
+				}
+				pieData.push({
+					'label': tooltip,
+					'value': parseFloat(data.loadtime),
+					'color': colors[key].color,
+					'highlight': colors[key].highlight,
+					});
+			});
+			loadtime = loadtime.toFixed(2);
+			jQuery('[data-name="zrayExtension:wordpress/plugins"] h1').append(' (' + loadtime +'ms)');
+			//String - A legend template
+			var options = { 
+				tooltipTemplate: "<%=label%>: <%=value%>ms",
+				legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<segments.length; i++){%><li><span class=\"legendColorSpan\" style=\"background-color:<%=segments[i].fillColor%>\"></span><%if(segments[i].label){%><%=segments[i].label%><%}%></li><%}%></ul>",
+				tooltipFontSize: 10,
+			};
+			var ctx = document.getElementById("plugins-statistics-chart").getContext("2d");
+		
+			var myPie = new Chart(ctx).Pie(pieData, options);
+			var legendText = myPie.generateLegend();
+	        $zendDevBar('#plugins-chart-lagend').append(legendText);
+		});
+	})();
+})();
+</script>
+
