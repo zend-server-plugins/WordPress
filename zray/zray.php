@@ -497,7 +497,7 @@ class Wordpress {
 	
 }
 
-$zre = new ZRayExtension('wordpress');
+$zre = new ZRayExtension('WordPress');
 
 $zrayWordpress = new Wordpress($zre);
 

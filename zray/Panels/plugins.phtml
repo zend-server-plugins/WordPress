@@ -86,14 +86,14 @@ $tableParams = array(
 	}]);
 	// create main table - end
 
-	zray.registerDataHandler('wordpress', 'plugins', function(extensionData, requestData) {
+	zray.registerDataHandler('WordPress', 'plugins', function(extensionData, requestData) {
 		storage.setData(extensionData);
 		jQuery('[data-name="zrayExtension:wordpress/plugins"] .zdb-toolbar-info').append(' ('+extensionData.length+')');
 	});
 
 
 	(function() {
-		zray.registerDataHandler('wordpress', 'pluginsStats', function(extensionData, requestData) {
+		zray.registerDataHandler('WordPress', 'pluginsStats', function(extensionData, requestData) {
 			var colors = [
 	            {'color': '#F7464A', 'highlight': '#FF5A5E'},
 	            {'color': '#46BFBD', 'highlight': '#5AD3D1'},

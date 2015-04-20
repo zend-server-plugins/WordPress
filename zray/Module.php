@@ -7,7 +7,7 @@ class Module extends \ZRay\ZRayModule {
 	public function config() {
 	    return array(
 	        'extension' => array(
-				'name' => 'wordpress',
+				'name' => 'WordPress',
 			),
 	        // configure  custom panels
             'defaultPanels' => array(

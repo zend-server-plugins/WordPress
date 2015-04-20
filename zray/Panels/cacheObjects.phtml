@@ -75,17 +75,17 @@ $tableParams = array(
 	}
 	// create main table - end
 
-	zray.registerDataHandler('wordpress', 'cacheStats', function(statsData, requestData) {
+	zray.registerDataHandler('WordPress', 'cacheStats', function(statsData, requestData) {
 		jQuery('[data-name="zrayExtension:wordpress/cacheObjects"] h1').append(' <small>(General Statistics - Hits:'+statsData[0]+', Misses: '+statsData[1]+', Total Size: '+statsData[2]+'kb)</small>');
 	});
-	zray.registerDataHandler('wordpress', 'cacheObjects', function(extensionData, requestData) {
+	zray.registerDataHandler('WordPress', 'cacheObjects', function(extensionData, requestData) {
 		storage.setData(extensionData);
 		jQuery('[data-name="zrayExtension:wordpress/cacheObjects"] .zdb-toolbar-info').append(' ('+extensionData.length+')');
 	});
 	zray.createSearch(storage, jQuery('#<?php echo $params['searchId']; ?>'), maintable);
 
 	(function() {
-		zray.registerDataHandler('wordpress', 'cachePieStats', function(extensionData, requestData) {
+		zray.registerDataHandler('WordPress', 'cachePieStats', function(extensionData, requestData) {
 			var colors = [
 	            {'color': '#F7464A', 'highlight': '#FF5A5E'},
 	            {'color': '#46BFBD', 'highlight': '#5AD3D1'},

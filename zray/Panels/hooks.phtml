@@ -151,11 +151,11 @@ $tableParams = array(
 	zray.createPager(storage, jQuery('#<?php echo $params['pagerId']; ?>'));
 	zray.createSearch(storage, jQuery('#<?php echo $params['searchId']; ?>'), maintable);
 	
-	zray.registerDataHandler('wordpress', 'core_hooks', function(extensionData, requestData) {
+	zray.registerDataHandler('WordPress', 'core_hooks', function(extensionData, requestData) {
 		storage_core.setData(extensionData);
 	});
 	
-	zray.registerDataHandler('wordpress', 'hooks', function(extensionData, requestData) {
+	zray.registerDataHandler('WordPress', 'hooks', function(extensionData, requestData) {
 		extensionData = extensionData || [];
 		storage.setData(extensionData);
 		if(storedStateForCoreHooks){

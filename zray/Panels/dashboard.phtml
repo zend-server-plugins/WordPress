@@ -63,11 +63,11 @@ $tableParams = array(
 	// create main table - end
 
 
-	zray.registerDataHandler('wordpress', 'generalInfo', function(extensionData, requestData) {
+	zray.registerDataHandler('WordPress', 'generalInfo', function(extensionData, requestData) {
 		generalInfoData=extensionData;
 		loadGeneralInfo();
 	});
-	zray.registerDataHandler('wordpress', 'time', function(extensionData, requestData) {
+	zray.registerDataHandler('WordPress', 'time', function(extensionData, requestData) {
 		queriesCount=requestData.SqlQueries.length;
 		var runTime = requestData.Runtime;
 		jQuery.each(runTime, function(key){
@@ -86,7 +86,7 @@ $tableParams = array(
 	});
 
 	(function() {
-		zray.registerDataHandler('wordpress', 'dashboard', function(extensionData, requestData) {
+		zray.registerDataHandler('WordPress', 'dashboard', function(extensionData, requestData) {
 			dashboardData = extensionData[0];
 		});
 	})();
