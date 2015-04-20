@@ -1,5 +1,6 @@
 {
-  "name" : "WordPress",
+  "name" : "wordpress",
+  "display_name" : "WordPress",
   "version" : "1.0.0",
   "type": ["zray", "route"],
   "logo": "zray/logo.png"
