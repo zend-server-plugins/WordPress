@@ -253,7 +253,7 @@ class Wordpress {
 		}
 		
 		//General Info
-		$storage['generalInfo'][] = array('name'=>'Wordpress Version','value'=>$wp_version);
+		$storage['generalInfo'][] = array('name'=>'WordPress Version','value'=>$wp_version);
 		$storage['generalInfo'][] = array('name'=>'Debug Mode (WP_DEBUG)','value'=>WP_DEBUG ? 'On' : 'Off');
 		$storage['generalInfo'][] = array('name'=>'Debug Log (WP_DEBUG_LOG)','value'=>WP_DEBUG_LOG ? 'On' : 'Off');
 		$storage['generalInfo'][] = array('name'=>'Script Debug (SCRIPT_DEBUG)','value'=>SCRIPT_DEBUG ? 'On' : 'Off');
