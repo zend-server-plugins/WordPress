@@ -119,7 +119,7 @@ $tableParams = array(
 				}
 				pieData.push({
 					'label': tooltip,
-					'value': parseFloat(data.loadtime),
+					'value': parseFloat(parseFloat(data.loadtime).toFixed(2)),
 					'color': colors[key].color,
 					'highlight': colors[key].highlight,
 					});
