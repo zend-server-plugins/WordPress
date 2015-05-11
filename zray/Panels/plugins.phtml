@@ -87,58 +87,126 @@ $tableParams = array(
 	// create main table - end
 
 	zray.registerDataHandler('WordPress', 'plugins', function(extensionData, requestData) {
-		storage.setData(extensionData);
-		jQuery('[data-name="zrayExtension:wordpress/plugins"] .zdb-toolbar-info').append(' ('+extensionData.length+')');
+		
+		zendDevBar.showData('functions');
+		loadProfilingData(extensionData);
 	});
 
-
-	(function() {
-		zray.registerDataHandler('WordPress', 'pluginsStats', function(extensionData, requestData) {
-			var colors = [
-	            {'color': '#F7464A', 'highlight': '#FF5A5E'},
-	            {'color': '#46BFBD', 'highlight': '#5AD3D1'},
-	            {'color': '#FDB45C', 'highlight': '#FFC870'},
-	            {'color': '#949FB1', 'highlight': '#A8B3C5'},
-	            {'color': '#4D5360', 'highlight': '#616774'},
-	            {'color': '#b48ead', 'highlight': '#b48eb3'},
-	            {'color': '#5B90BF', 'highlight': '#5bbabf'}
-	        ];
-			if(!extensionData || extensionData.length==0){
-				var extensionData = [{
-						name: 'No Load Time',
-						loadtime: 1
-					}];
-			}
-			var pieData = [];
-			var loadtime=0;
-			jQuery.each(extensionData, function(key, data) {
-				loadtime+=data.loadtime*1;
-				var tooltip=data.name;
-				if(data.name.length>7){
-					tooltip=data.name.substring(0,6)+'.';
-				}
-				pieData.push({
-					'label': tooltip,
-					'value': parseFloat(parseFloat(data.loadtime).toFixed(2)),
-					'color': colors[key].color,
-					'highlight': colors[key].highlight,
-					});
-			});
-			loadtime = loadtime.toFixed(2);
-			jQuery('[data-name="zrayExtension:wordpress/plugins"] h1').append(' (' + loadtime +'ms)');
-			//String - A legend template
-			var options = { 
-				tooltipTemplate: "<%=label%>: <%=value%>ms",
-				legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<segments.length; i++){%><li><span class=\"legendColorSpan\" style=\"background-color:<%=segments[i].fillColor%>\"></span><%if(segments[i].label){%><%=segments[i].label%><%}%></li><%}%></ul>",
-				tooltipFontSize: 10,
-			};
-			var ctx = document.getElementById("plugins-statistics-chart").getContext("2d");
+	
+	var loadingProfilingData = false;
+	var loadProfilingData = function(extensionData){
+		if(loadingProfilingData) { return; }
+		var functionsData = zendDevBar.getStorage('functions').getData();
+		var pluginsData = extensionData;
+		if(functionsData.length == 0){
+			return setTimeout(function(){ 
+				loadProfilingData(extensionData);
+			},100);
+		}
+		loadingProfilingData = true;
 		
-			var myPie = new Chart(ctx).Pie(pieData, options);
-			var legendText = myPie.generateLegend();
-	        $zendDevBar('#plugins-chart-lagend').append(legendText);
+		var plugins_dirs = {};
+		var plugins_hashmap = {};
+		jQuery.each(pluginsData, function(k,v){ 
+			var plugin_dir = v.path.split('/')[0];
+			plugins_dirs[plugin_dir] = 0;
+			plugins_hashmap[plugin_dir]=v.name;
+			
 		});
-	})();
+		
+		jQuery.each(functionsData,function(fIndex,functionData){
+			jQuery.each(plugins_dirs,function(plugin_dir){
+				if(functionData.filename.indexOf(plugin_dir) > 0){
+					plugins_dirs[plugin_dir] += functionData.timeExclusive;
+				}
+			});
+		});
+		
+		var piePluginsData = [];
+		var loadtime = 0;
+		jQuery.each(plugins_dirs,function(plugin_dir){
+			var plugin_name = plugins_hashmap[plugin_dir];
+			jQuery.each(extensionData,function(pIndex,pluginData){
+				if(pluginData.name == plugin_name) {
+					pluginData.loadtime = plugins_dirs[plugin_dir] / 1000;
+					loadtime += pluginData.loadtime;
+					piePluginsData.push({
+						name: pluginData.name,
+						loadtime: pluginData.loadtime
+					});
+				}
+			});
+		});
+		
+		storage.setData(extensionData);
+		
+		//Plugins Stats
+		var colors = [
+			{'color': '#F7464A', 'highlight': '#FF5A5E'},
+			{'color': '#46BFBD', 'highlight': '#5AD3D1'},
+			{'color': '#FDB45C', 'highlight': '#FFC870'},
+			{'color': '#949FB1', 'highlight': '#A8B3C5'},
+			{'color': '#4D5360', 'highlight': '#616774'},
+			{'color': '#b48ead', 'highlight': '#b48eb3'},
+			{'color': '#5B90BF', 'highlight': '#5bbabf'}
+		];
+		
+		if(piePluginsData.length == 0){
+			var piePluginsData = [{
+				name: 'No Load Time',
+				loadtime: 1
+			}];
+		}
+		
+		
+		var pieData = [];
+		var others = 0;
+		var i=0;
+		jQuery.each(piePluginsData, function(key, data) {
+			if(data.loadtime <= loadtime*0.15){
+				others += data.loadtime;
+				return;
+			}
+			var tooltip=data.name;
+			if(data.name.length>7){
+				tooltip=data.name.substring(0,6)+'.';
+			}
+			pieData.push({
+				'label': tooltip,
+				'value': parseFloat(parseFloat(data.loadtime).toFixed(2)),
+				'color': colors[i].color,
+				'highlight': colors[i].highlight,
+			});
+			i++;
+		});
+		
+		jQuery('[data-name="zrayExtension:wordpress/plugins"] .zdb-toolbar-info').append(' ('+pieData.length+')');
+		
+		if(others > 0){
+			pieData.push({
+				'label': 'Others',
+				'value': parseFloat(others.toFixed(2)),
+				'color': colors[6].color,
+				'highlight': colors[6].highlight,
+			});
+		}
+		loadtime = loadtime.toFixed(2);
+		jQuery('[data-name="zrayExtension:wordpress/plugins"] h1').append(' (' + loadtime +'ms)');
+		//String - A legend template
+		var options = { 
+			tooltipTemplate: "<%=label%>: <%=value%>ms",
+			legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<segments.length; i++){%><li><span class=\"legendColorSpan\" style=\"background-color:<%=segments[i].fillColor%>\"></span><%if(segments[i].label){%><%=segments[i].label%><%}%></li><%}%></ul>",
+			tooltipFontSize: 10,
+		};
+		var ctx = document.getElementById("plugins-statistics-chart").getContext("2d");
+	
+		var myPie = new Chart(ctx).Pie(pieData, options);
+		var legendText = myPie.generateLegend();
+		$zendDevBar('#plugins-chart-lagend').append(legendText);
+		
+		
+	}
+	
 })();
 </script>
 

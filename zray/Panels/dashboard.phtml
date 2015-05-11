@@ -85,15 +85,11 @@ $tableParams = array(
 		timeTotal += total;
 	});
 
-	(function() {
-		zray.registerDataHandler('WordPress', 'dashboard', function(extensionData, requestData) {
-			dashboardData = extensionData[0];
-		});
-	})();
 	function loadGeneralInfo(){
-		if(!queriesCount||!generalInfoData||!dashboardData){
+		if(!queriesCount||!generalInfoData||zendDevBar.getStorage('functions').getData().length==0||zendDevBar.getStorage('plugins').getData().length==0||zendDevBar.getStorage('theme').getData().length==0){
 			return setTimeout(loadGeneralInfo,100);
 		}
+		
 		generalInfoData.push({name:"Queries Count",value:queriesCount});
 		
 		var colors = [
@@ -105,15 +101,33 @@ $tableParams = array(
 			{'color': '#b48ead', 'highlight': '#b48eb3'},
 			{'color': '#5B90BF', 'highlight': '#5bbabf'}
 		];
+		var dashboardData = [];
+		var pluginsTime = 0;
+		jQuery.each(zendDevBar.getStorage('plugins').getData(),function(k,v){
+			pluginsTime += v.loadtime;
+		});
+		dashboardData.push({
+			name: 'Plugins',
+			loadtime: pluginsTime
+		});
+		var themeTime = 0;
+		jQuery.each(zendDevBar.getStorage('theme').getData(),function(k,v){
+			themeTime += v.time;
+		});
+		
+		dashboardData.push({
+			name: 'Theme',
+			loadtime: themeTime
+		});
 		var wpTime = timeTotal/1000;
 		var pieData = [];
 		var lastKey;
-		jQuery.each(dashboardData.chart, function(key, data) {
+		jQuery.each(dashboardData, function(key, data) {
 			lastKey=key;
 			wpTime-=data.loadtime;
 			pieData.push({
 				'label': data.name,
-				'value': parseFloat(data.loadtime),
+				'value': parseFloat(data.loadtime.toFixed(2)),
 				'color': colors[key].color,
 				'highlight': colors[key].highlight,
 			});

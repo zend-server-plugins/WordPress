@@ -1,6 +1,5 @@
 <?php
 
-
 class Wordpress {
 	private $zre;
 	private $_profilePlugins = array();
@@ -264,15 +263,7 @@ class Wordpress {
 		    $storage['generalInfo'][] = array('name'=>'Save Queries (SAVEQUERIES)','value'=>SAVEQUERIES ? 'On' : 'Off');
 		}
 		
-		//Dashboard
-		$chart = array();
-		$chart[] = array('name'=>'Plugins','loadtime'=>$pluginsTime);
-		if(isset($this->_themeTime)){
-			$chart[] = array('name'=>'Theme','loadtime'=>$this->_themeTime);
-		}
-		$storage['dashboard'][] = array(
-										'chart'=>$chart
-									);
+		
 		//WP_Query
 		if($this->loadWPQueryPane()){
 			$storage['wp_query'][]=$this->_wpquery;
@@ -297,66 +288,9 @@ class Wordpress {
 		}
 		return true;
 	}
-	public function pluginsFuncEnd($context,&$storage,$filename){
-		if(preg_match('/'.preg_quote($this->plugins_dir_name,'/').'\/(.*?)\//',$filename,$match)||preg_match('/'.preg_quote($this->muplugins_dir_name,'/').'\/(.*?)\//',$filename,$match)){
-			$plugin=$match[1];
-			if(!isset($this->_profilePlugins[$plugin])){
-				$this->_profilePlugins[$plugin]=0;
-			}
-			$this->_profilePlugins[$plugin]+=number_format($context['durationExclusive']/1000,2)*1;
-		}
-	}
-	public function themesFuncEnd($context,&$storage,$filename){
-	    $template_directory=realpath(get_template_directory());
-		$theme_root_array = explode(DIRECTORY_SEPARATOR,$template_directory);
-		$theme_dir_name = end($theme_root_array);
-		if(!isset($this->_themeFuncs)){
-			$this->_themeFuncs=array();
-		}
-		if(!isset($this->_themeTime)){
-			$this->_themeTime=0;
-		}
-		if(preg_match('/'.preg_quote($theme_dir_name, '/').'\/(.*?)\//',$filename,$match)){
-			$this->_themeTime+=$context['durationExclusive'];
-			$this->_themeFuncs[]=array(
-				'name'=>$context['functionName'],
-				'time'=>$context['durationExclusive'],
-				'file'=>$filename,
-				'filename'=>str_replace($template_directory,'',$theme_dir_name. realpath($filename)),
-				'line'=>$context['calledFromLine']
-			);
-		}
-	}
-	public function initProfiler($type='plugins'){
-		$plugin_dir_array = explode('\\',realpath(WP_PLUGIN_DIR));
-		$this->plugins_dir_name = array_pop($plugin_dir_array);
-		$muplugins_dir_array = explode('\\',realpath(WPMU_PLUGIN_DIR));
-		$this->muplugins_dir_name = array_pop($muplugins_dir_array);
-		switch($type){
-			case 'themes':
-				$func='themesFuncEnd';
-				$path = realpath(get_template_directory());
-				break;
-			case 'mu-plugins':
-				$func='pluginsFuncEnd';
-				$path = realpath(WPMU_PLUGIN_DIR);
-				break;
-			default:
-				$func='pluginsFuncEnd';
-				$path = realpath(WP_PLUGIN_DIR);
-				break;
-		}
-		try{
-			$objects = new RegexIterator(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path), RecursiveIteratorIterator::SELF_FIRST), '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
-			foreach($objects as $filename => $object){
-				$this->zre->traceFile($filename ,function(){},function($context,&$storage) use ($func,$filename){
-					$filename = str_replace(DIRECTORY_SEPARATOR,'/',$filename); //Standardize the path as unix path
-					$this->$func($context,$storage,$filename);
-				});
-			}
-		}catch(Exception $e){
-		}
-	}
+	
+	
+	
 	public function registerHook($context,$type){
 		$type=str_replace('add_','',$type);
 		$type=ucfirst($type);
@@ -507,12 +441,6 @@ $zre->setMetadata(array(
 
 $zre->setEnabledAfter('wp_initial_constants');
 
-$zre->traceFunction('wp', function() use ($zre,$zrayWordpress){ 
-	$zrayWordpress->initProfiler('plugins');
-	$zrayWordpress->initProfiler('mu-plugins');
-	$zrayWordpress->initProfiler('themes');
-
- }, function(){});
 
 $zre->traceFunction('wp_initial_constants', function() use ($zre,$zrayWordpress){ 
 	$zrayWordpress->startMeasureTime();
