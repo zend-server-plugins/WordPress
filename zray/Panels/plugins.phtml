@@ -85,20 +85,22 @@ $tableParams = array(
 		}
 	}]);
 	// create main table - end
-
-	zray.registerDataHandler('WordPress', 'plugins', function(extensionData, requestData) {
+	zray.registerDataHandler('WordPress', 'generalInfo', function(generalInfoData, rD) {
+		zray.getStorage('generalInfo').setData(generalInfoData);
 		
+	});
+	zray.registerDataHandler('WordPress', 'plugins', function(extensionData, requestData) {
 		zendDevBar.showData('functions');
 		loadProfilingData(extensionData);
 	});
-
 	
 	var loadingProfilingData = false;
 	var loadProfilingData = function(extensionData){
 		if(loadingProfilingData) { return; }
 		var functionsData = zendDevBar.getStorage('functions').getData();
+		var generalInfoData = zendDevBar.getStorage('generalInfo').getData();
 		var pluginsData = extensionData;
-		if(functionsData.length == 0){
+		if(functionsData.length == 0 || generalInfoData.length == 0){
 			return setTimeout(function(){ 
 				loadProfilingData(extensionData);
 			},100);
@@ -113,10 +115,17 @@ $tableParams = array(
 			plugins_hashmap[plugin_dir]=v.name;
 			
 		});
-		
+		jQuery.each(generalInfoData,function(k,v){
+			switch(v.name.toLowerCase()){
+				case 'plugins directory':
+					plugins_dir = v.value;
+					break;
+			}
+		});
 		jQuery.each(functionsData,function(fIndex,functionData){
 			jQuery.each(plugins_dirs,function(plugin_dir){
-				if(functionData.filename.indexOf(plugin_dir) > 0){
+				var filename = functionData.filename.replace(/\\/g,'/');
+				if(filename.indexOf(plugins_dir + '/' + plugin_dir) == 0){
 					plugins_dirs[plugin_dir] += functionData.timeExclusive;
 				}
 			});

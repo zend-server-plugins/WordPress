@@ -50,22 +50,32 @@ $tableParams = array(
 	
 	maintable.setColumns(cols);
 	// create main table - end
-	
+	var template = {};
 	zray.registerDataHandler('WordPress', 'generalInfo', function(generalInfoData, requestData) {
 		zendDevBar.showData('functions');
 		jQuery.each(generalInfoData,function(k,v){
-			if(v.name.toLowerCase() == "template"){
-				loadProfilingData(v.value);
+			switch(v.name.toLowerCase()){
+				case 'template':
+					template.name = v.value;
+					break;
+				case 'template directory':
+					template.dir = v.value;
+					break;
 			}
-		});		
+		});
+		loadProfilingData(template);
 		
 	});
-
+	
+	zray.registerDataHandler('WordPress', 'themeHelper', function(extensionData, requestData) {
+		zray.getStorage('themeHelper').setData(extensionData);
+	});
 	var loadingProfilingData = false;
 	var loadProfilingData = function(template){
 		if(loadingProfilingData) { return; }
 		var functionsData = zendDevBar.getStorage('functions').getData();
-		if(functionsData.length == 0){
+		var themeHelper = zendDevBar.getStorage('themeHelper').getData();
+		if(functionsData.length == 0 || themeHelper.length == 0){
 			return setTimeout(function(){ 
 				loadProfilingData(template);
 			},100);
@@ -74,16 +84,18 @@ $tableParams = array(
 		
 		var loadtime=0;
 		var funcs = [];
+		
 		jQuery.each(functionsData,function(fIndex,functionData){
-			if(functionData.filename.indexOf(template) > 0){
+			var filename = functionData.filename.replace(/\\/g,'/');
+			if(filename.indexOf(template.dir) == 0){
 				loadtime = functionData.timeExclusive / 1000;
 				var item = {
 					file: functionData.filename,
 					filename: functionData.filename,
 					line: functionData.line,
-					name: functionData.functionName,
+					name: functionData.functionFull,
 					time: loadtime,
-					fileLine:functionData.filename+':'+functionData.line
+					fileLine: template.name + filename.replace(template.dir,'')+':'+functionData.line
 				};
 				funcs.push(item);
 			}

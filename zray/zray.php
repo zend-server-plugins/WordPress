@@ -243,13 +243,6 @@ class Wordpress {
 			}
 		}
 		
-		//Theme Functions
-		if(isset($this->_themeFuncs)){
-			$theme_root_array = explode(DIRECTORY_SEPARATOR,realpath(get_template_directory()));
-			$theme_dir_name = end($theme_root_array);
-			$storage['theme'][]=array('data'=>$this->_themeFuncs,
-										'theme'=>$theme_dir_name);
-		}
 		
 		//General Info
 		$storage['generalInfo'][] = array('name'=>'WordPress Version','value'=>$wp_version);
@@ -257,7 +250,9 @@ class Wordpress {
 		$storage['generalInfo'][] = array('name'=>'Debug Log (WP_DEBUG_LOG)','value'=>WP_DEBUG_LOG ? 'On' : 'Off');
 		$storage['generalInfo'][] = array('name'=>'Script Debug (SCRIPT_DEBUG)','value'=>SCRIPT_DEBUG ? 'On' : 'Off');
 		$storage['generalInfo'][] = array('name'=>'Template','value'=>get_template());
+		$storage['generalInfo'][] = array('name'=>'Template Directory','value'=>str_replace('\\','/',realpath(get_template_directory())));
 		$storage['generalInfo'][] = array('name'=>'Doing Crons','value'=>$doing_cron ? 'Yes' : 'No');
+		$storage['generalInfo'][] = array('name'=>'Plugins Directory','value'=>str_replace('\\','/',realpath(WP_PLUGIN_DIR)));
 		$storage['generalInfo'][] = array('name'=>'Plugins Count','value'=>count($storage['plugins']));
 		if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES ) {
 		    $storage['generalInfo'][] = array('name'=>'Save Queries (SAVEQUERIES)','value'=>SAVEQUERIES ? 'On' : 'Off');
