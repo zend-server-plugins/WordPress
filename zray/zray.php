@@ -1,79 +1,17 @@
 <?php
 
+namespace ZRayWordpress;
+
 class Wordpress {
 	private $zre;
 	private $_profilePlugins = array();
 	private $_profileThemes = array();
-	private $_hooks = array();
-	private $_filters = array();
-	private $_cache_hits = array();
-	private $_cache_misses = array();
-	private $_cache_pie_size_statistics = array();
 	
 	public function __construct(&$zre){
 		$this->zre = $zre;
 	}
 	
-	public function wpCacheGetExit($context, &$storage) {
-	    
-        $group = $context['locals']['group'];
-        $key = $context["functionArgs"][0];
-        
-	    if ($context['locals']["found"]) {
-	        if (isset($this->_cache_hits[$group]) && isset($this->_cache_hits[$group][$key])) {
-	           $this->_cache_hits[$group][$key]++;
-	        } else {
-	           $this->_cache_hits[$group][$key] = 1;
-	        }
-	   } else {
-	       if (isset($this->_cache_misses[$group]) && isset($this->_cache_misses[$group][$key])) {
-	           $this->_cache_misses[$group][$key]++;
-	       } else {
-	           $this->_cache_misses[$group][$key] = 1;
-	       }
-	   }
-	}
-	
-	public function startMeasureTime(){
-		$this->_startTime=microtime(true);
-	}
-	
-	private function stopMeasureTime(){
-		$this->_wpRunTime=(microtime(true)-$this->_startTime)*1000;
-	}
-	
-	public function wpRunExit($context, &$storage){
-		$this->stopMeasureTime();
-		global $wp_object_cache,$wp_version;
-		
-	    $this->storeCacheObjects($wp_object_cache, $storage);
-		$this->storeHitsStatistics($wp_object_cache, $storage);
-		$this->storeCachePieStatistics($storage);
-		
-		$schedules=array();
-		foreach(wp_get_schedules() as $key => $schedule){
-			$schedules[$key]=$schedule['display'];
-		}
-		
-		//Crons
-		$doing_cron=get_transient( 'doing_cron' );
-		if(is_array(_get_cron_array())){
-			foreach( _get_cron_array() as $time=>$crons ){
-				foreach($crons as $name=>$cron){
-					foreach($cron as $subcron){
-						$storage['crons'][] = array(
-							'hook'=>$name,
-							'schedule'=>empty($schedules[$subcron['schedule']]) ? $subcron['schedule'] : $schedules[$subcron['schedule']],
-							'nextExecution'=>human_time_diff( $time ) . (time() > $time  ? ' ago' : ''),
-							'arguments'=>count($subcron['args'])>0 ? print_r($subcron['args'],true) : ''
-						);
-					}
-				}
-			}
-		}
-		
-		
-		
+	public function wpRunExit($context, &$storage) {
 		//Plugins List
 		$this->plugins=array();
 		try{
@@ -169,266 +107,26 @@ class Wordpress {
 		if($pluginsOtherChart>0){
 			$storage['pluginsStats'][]=array('name'=>'Others','loadtime'=>$pluginsOtherChart);
 		}
-		
-		$incId=0;
-		//Hooks List
-		$hookers=array();
-		$core_hookers=array();
-		if(count($this->_hooks)>0){
-			foreach($this->_hooks as $hookName => $hook){
-				foreach($hook as $hooker){
-					if(is_string($hooker['hookFunction'])){
-						$hookKey = $hooker['hookFunction'];
-					}elseif(is_array($hooker['hookFunction'])){
-						if(is_string(is_array($hooker['hookFunction'][0]))){
-							$hookKey = $hooker['hookFunction'][0];
-						}elseif(is_object($hooker['hookFunction'][0])){
-							$hookKey = get_class($hooker['hookFunction'][0]) . '->' . $hooker['hookFunction'][1];
-						}
-					}else{
-						
-					}
-					$filename=explode(DIRECTORY_SEPARATOR,$hooker['file']);
-					if(!$hooker['hookCore']){
-						$hookers[]=array(
-							'id'=>++$incId,
-							'function'=>$hookKey,
-							'file'=>$hooker['file'],
-							'line'=>$hooker['line'],
-							'filename'=>end($filename),
-							'hookName'=>$hookName,
-							'hookType'=>$hooker['hookType'],
-							'executionTime'=>$hooker['executionTime'],
-							'hookSource'=>$hooker['hookSource'],
-							'priority'=>$hooker['priority'],
-							'hookCore'=>$hooker['hookCore']
-						);
-					}else{
-						$core_hookers[]=array(
-							'id'=>++$incId,
-							'function'=>$hookKey,
-							'file'=>$hooker['file'],
-							'line'=>$hooker['line'],
-							'filename'=>end($filename),
-							'hookName'=>$hookName,
-							'hookType'=>$hooker['hookType'],
-							'executionTime'=>$hooker['executionTime'],
-							'hookSource'=>$hooker['hookSource'],
-							'priority'=>$hooker['priority'],
-							'hookCore'=>$hooker['hookCore']
-						);
-					}
-				}
-			}
-		}
-		$storage['hooks']=$hookers;
-		$storage['core_hooks']=$core_hookers;
-		
-		//Filters List
-		if(count($this->_filters)>0){
-			foreach($this->_filters as $filterName => $filter){
-				$filterers=array();
-				foreach($filter as $filterer){
-					$filterers[]=array(
-						'name'=>$filterer['filterFunction'],
-						'File (Execution Time)'=>$filterer['file'].' ('.$filterer['executionTime'].'ms)',
-						'filter Type'=>$filterer['filterType']
-					);
-				}
-				$storage['filters'][]=array(
-					'name'=>$filterName,
-					'File (Execution Time)'=>$filterers,
-					'filter Type'=>''
-				);
-			}
-		}
-		
+
 		
 		//General Info
-		$storage['generalInfo'][] = array('name'=>'WordPress Version','value'=>$wp_version);
+		$storage['generalInfo'][] = array('name'=>'WordPress Version','value'=>$GLOBALS['wp_version']);
 		$storage['generalInfo'][] = array('name'=>'Debug Mode (WP_DEBUG)','value'=>WP_DEBUG ? 'On' : 'Off');
 		$storage['generalInfo'][] = array('name'=>'Debug Log (WP_DEBUG_LOG)','value'=>WP_DEBUG_LOG ? 'On' : 'Off');
 		$storage['generalInfo'][] = array('name'=>'Script Debug (SCRIPT_DEBUG)','value'=>SCRIPT_DEBUG ? 'On' : 'Off');
 		$storage['generalInfo'][] = array('name'=>'Template','value'=>get_template());
 		$storage['generalInfo'][] = array('name'=>'Template Directory','value'=>str_replace('\\','/',realpath(get_template_directory())));
-		$storage['generalInfo'][] = array('name'=>'Doing Crons','value'=>$doing_cron ? 'Yes' : 'No');
+		$storage['generalInfo'][] = array('name'=>'Doing Crons','value'=>get_transient( 'doing_cron' ) ? 'Yes' : 'No');
 		$storage['generalInfo'][] = array('name'=>'Plugins Directory','value'=>str_replace('\\','/',realpath(WP_PLUGIN_DIR)));
 		$storage['generalInfo'][] = array('name'=>'Plugins Count','value'=>count($storage['plugins']));
 		if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES ) {
 		    $storage['generalInfo'][] = array('name'=>'Save Queries (SAVEQUERIES)','value'=>SAVEQUERIES ? 'On' : 'Off');
 		}
-		
-		
-		//WP_Query
-		if($this->loadWPQueryPane()){
-			$storage['wp_query'][]=$this->_wpquery;
-		}
-	}
-	public function loadWPQueryPane(){
-		global $wp_query;
-		$this->_wpquery=array();
-		if(!empty($wp_query->query)){
-			$this->_wpquery['Query']=http_build_query( $wp_query->query );
-		}
-		if(!empty($wp_query->request)){
-			$this->_wpquery['Request']=$wp_query->request;
-		}
-		$queriedObject = get_queried_object();
-		if(!empty($queriedObject)){
-			$this->_wpquery['Object']=$queriedObject;
-		}
-		$this->_wpquery['Object ID']=get_queried_object_id();
-		if(count($this->_wpquery)==0){
-			return false;
-		}
-		return true;
-	}
-	
-	
-	
-	public function registerHook($context,$type){
-		$type=str_replace('add_','',$type);
-		$type=ucfirst($type);
-		$hookCore=false;
-		if(defined('WP_PLUGIN_DIR')&&strpos($context['calledFromFile'],realpath(WP_PLUGIN_DIR))!==false){
-			$matches=explode(DIRECTORY_SEPARATOR,str_replace(realpath(WP_PLUGIN_DIR),'',$context['calledFromFile']));
-			$hookSource=$matches[1];
-		}elseif(defined('WPMU_PLUGIN_DIR')&&strpos($context['calledFromFile'],realpath(WPMU_PLUGIN_DIR))!==false){
-			$matches=explode(DIRECTORY_SEPARATOR,str_replace(realpath(WP_PLUGIN_DIR),'',$context['calledFromFile']));
-			$hookSource=$matches[1];
-		}elseif(function_exists('get_theme_root')&&strpos($context['calledFromFile'],realpath(get_theme_root())!==false)){
-			$matches=explode(DIRECTORY_SEPARATOR,str_replace(realpath(WP_PLUGIN_DIR),'',$context['calledFromFile']));
-			$hookSource=$matches[1];
-		}else{
-			$hookSource='Core';
-			$type.=' (Core)';
-			$hookCore=true;
-		}
-		
-		if(!isset($this->_hooks[$context['functionArgs'][0]])){
-			$this->_hooks[$context['functionArgs'][0]]=array();
-		}
-		$this->_hooks[$context['functionArgs'][0]][] = array(
-			'hookFunction'=>$context['functionArgs'][1],
-			'file'=>$context['calledFromFile'],
-			'line'=>$context['calledFromLine'],
-			'executionTime'=>$context['durationExclusive'],
-			'hookSource'=>$hookSource,
-			'hookType'=>$type,
-			'hookCore'=>$hookCore,
-			'priority'=>isset($context['functionArgs'][2]) ? $context['functionArgs'][2] : '10',
-		);
-	}
-	public function registerFilter($context,$type){
-		if(!preg_match('/plugins\/(.*?)\//',$context['calledFromFile'])){
-			return; //we want only plugins apply_filters
-		}
-		if(!isset($this->_filters[$context['functionArgs'][0]])){
-			$this->_filters[$context['functionArgs'][0]]=array();
-		}
-		$this->_filters[$context['functionArgs'][0]][] = array(
-			'filterFunction'=>$context['functionArgs'][1],
-			'file'=>$context['calledFromFile'].':'.$context['calledFromLine'],
-			'executionTime'=>$context['durationExclusive'],
-			'arguments'=>$context['functionArgs'],
-			'filterType'=>$type
-		);
-	}
-	public function initHookCatcher(){
-		$this->zre->traceFunction('add_action',function(){}, function($context) { 
-			$this->registerHook($context,'add_action');
-		});
-		$this->zre->traceFunction('add_filter',function(){}, function($context) { 
-			$this->registerHook($context,'add_filter');
-		});
-		/*$this->zre->traceFunction('apply_filters',function(){}, function($context) { 
-			$this->registerFilter($context,'apply_filters');
-		});*/
-	}
-	
-	private function storeCacheObjects($wp_object_cache, &$storage) {
-	     
-	    $data_array=array();
-	    foreach ($wp_object_cache->cache as $group => $group_items) {
-	        $group_size = 0;
-	        $group_hits = 0;
-	        $group_item_array=array();		
-	        foreach($group_items as $group_item_name => $group_item) {
-	    
-	            $item_size =  number_format( strlen( serialize( $group_item ) ) / 1024, 2 );
-	            $group_size += $item_size;
-	    
-	            $hits = 0;
-	            if (isset($this->_cache_hits[$group][$group_item_name])) {
-	                $hits = $this->_cache_hits[$group][$group_item_name];
-	                $group_hits += $hits;
-	            }
-				if(count($group_items)==1){
-					$group_item_array = $hits;
-				}else{
-					$group_item_array[] = array('name' => $group_item_name, 'size' => $item_size , 'hits' => $hits);
-				}
-	            
-	        }
-			$this->_cache_pie_size_statistics[$group] = floatval($group_size);
-	        // we lose temprorally $group_hits
-	        $data_array[] = array('name' => $group, 'size' => $group_size , 'hits' => $group_item_array);
-	    }
-	    $storage['cacheObjects'] = $data_array;
-	}
-	
-	private function storeHitsStatistics($wp_object_cache, &$storage) {
-	    $total = 0;
-	    foreach ($this->_cache_pie_size_statistics as $count) {
-	        $total += $count;
-	    }
-	    // General hits/misses data
-	    $storage['cacheStats'] = array('hits' => $wp_object_cache->cache_hits, 'misses' => $wp_object_cache->cache_misses, 'totalSize' => $total);
-	}
-	
-	private function storeCachePieStatistics(&$storage) {
-	    $total = 0;
-	    foreach ($this->_cache_pie_size_statistics as $count) {
-	        $total += $count;
-	    }
-	    $percent15 = $total * 0.15;
-	    $cachePieStats = array();
-	    $otherCount = 0;
-		$others = array();
-	    foreach ($this->_cache_pie_size_statistics as $name => $value) {
-	        if ($value >= $percent15) {
-	           $cachePieStats[] = array('name' => $name, 'count' => $value);
-	        } else {
-				$others[] = array('name' => $name, 'count' => $value);
-	            $otherCount += $value;
-	        }
-	    }
-		$count=3;
-		if(count($cachePieStats)<$count&&count($others)>0){
-			usort($others, function($a, $b){
-				return strcmp($b['count'], $a['count']);
-			});
-			if(count($others)<$count){
-				$count=count($others);
-			}
-			foreach(array_slice($others, 0, $count) as $item){
-				$cachePieStats[] = $item;
-				$otherCount-=$item['count'];
-			}
-		}
-	    if ($otherCount > 0) {
-			
-	       $cachePieStats[] = array('name' => 'Other', 'count' => $otherCount);
-	    }
-	    
-	    $storage['cachePieStats'] = $cachePieStats;
 	}
 	
 }
 
-$zre = new ZRayExtension('WordPress');
-
-$zrayWordpress = new Wordpress($zre);
+$zre = new \ZRayExtension('WordPress');
 
 $zre->setMetadata(array(
 	'logo' => __DIR__ . DIRECTORY_SEPARATOR . 'logo.png',
@@ -437,13 +135,35 @@ $zre->setMetadata(array(
 $zre->setEnabledAfter('wp_initial_constants');
 
 
-$zre->traceFunction('wp_initial_constants', function() use ($zre,$zrayWordpress){ 
-	$zrayWordpress->startMeasureTime();
-	$zrayWordpress->initHookCatcher();
- }, function(){});
- 
-// stores the cache hits/misses
-$zre->traceFunction('wp_cache_get', function(){}, array($zrayWordpress, 'wpCacheGetExit'));
+$zre->traceFunction('wp_initial_constants',function(){}, function() use ($zre) {
 
-$zre->traceFunction('wp_cache_close', function(){}, array($zrayWordpress, 'wpRunExit'));
+	$zrayWordpress = new Wordpress($zre);
 
+	// Cache
+	include 'WordpressCache.php';
+	$wordpressCache = new WordpressCache();
+	$zre->traceFunction('wp_cache_get', function(){}, array($wordpressCache, 'wpCacheGetExit'));
+	$zre->traceFunction('wp_cache_close', function(){}, array($wordpressCache, 'beforeExit'));
+
+	// Hooks
+	include 'WordpressHooks.php';
+	$wordpressHooks = new WordpressHooks($zre);
+	$wordpressHooks->traceHooks();
+	$zre->traceFunction('wp_cache_close', function(){}, array($wordpressHooks, 'beforeExit'));
+
+	// Crons
+	include 'WordpressCrons.php';
+	$wordPressCrons = new WordpressCrons();
+	$zre->traceFunction('wp_cache_close', function(){}, array($wordPressCrons, 'beforeExit'));
+
+	// wp query
+	include 'WordpressWpQuery.php';
+	$wordpressWpQuery = new WordpressWpQuery();
+	$zre->traceFunction('wp_cache_close', function(){}, array($wordpressWpQuery, 'beforeExit'));
+
+	$zre->traceFunction('wp_cache_close', function(){}, array($zrayWordpress, 'wpRunExit'));
+});
+	
+	
+
+?>
