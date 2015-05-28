@@ -3,9 +3,9 @@ $tableParams = array(
 	'tableId' 			=> 'wp-theme-table',
     'tableWidth'        => '4',
 );
-?>
 
-<?php echo $this->zrayTable($tableParams); //zrayTableHtml ?>
+echo $this->zrayTable($tableParams); //zrayTableHtml 
+?>
 
 <script type="text/javascript">
 (function() {
@@ -21,11 +21,18 @@ $tableParams = array(
 			"width": '20%'
 		},
 		{
-			"label": "Time (ms)",
-			"propertyName": "time",
+			"label": "Duration Inclusive (ms)",
+			"propertyName": "dInclusive",
+			"sortable": true,
+			"width": '20%'
+		},
+		{
+			"label": "Duration Exclusive (ms)",
+			"propertyName": "dExclusive",
 			"sortable": true,
 			"width": '20%'
 		}
+		
 	];
 	
 	if(zray.getFileActions && zray.showInIde){
@@ -35,7 +42,7 @@ $tableParams = array(
 			propertyName: 'filename',
 			sortable:true,
 			getHtml: function(val, rec) {
-				var showInIDEParams = {filePath: rec.file, line: rec.line, fullUrl: document.location.href};
+				var showInIDEParams = {filePath: rec.filename, line: rec.line, fullUrl: document.location.href};
 				return zray.getFileActions(rec.fileLine, val, rec.file, showInIDEParams);
 			}
 		});
@@ -67,34 +74,28 @@ $tableParams = array(
 		
 	});
 	
-	zray.registerDataHandler('WordPress', 'themeHelper', function(extensionData, requestData) {
-		zray.getStorage('themeHelper').setData(extensionData);
-	});
 	var loadingProfilingData = false;
 	var loadProfilingData = function(template){
 		if(loadingProfilingData) { return; }
 		var functionsData = zendDevBar.getStorage('functions').getData();
-		var themeHelper = zendDevBar.getStorage('themeHelper').getData();
-		if(functionsData.length == 0 || themeHelper.length == 0){
-			return setTimeout(function(){ 
+		if(functionsData.length == 0){
+		return setTimeout(function(){ 
 				loadProfilingData(template);
 			},100);
 		}
 		loadingProfilingData = true;
 		
-		var loadtime=0;
 		var funcs = [];
 		
 		jQuery.each(functionsData,function(fIndex,functionData){
 			var filename = functionData.filename.replace(/\\/g,'/');
 			if(filename.indexOf(template.dir) == 0){
-				loadtime = functionData.timeExclusive / 1000;
 				var item = {
-					file: functionData.filename,
 					filename: functionData.filename,
 					line: functionData.line,
 					name: functionData.functionFull,
-					time: loadtime,
+					dInclusive: functionData.timeInclusive / 1000,
+					dExclusive: functionData.timeExclusive / 1000,
 					fileLine: template.name + filename.replace(template.dir,'')+':'+functionData.line
 				};
 				funcs.push(item);
