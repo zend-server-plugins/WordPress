@@ -43,7 +43,7 @@ echo $this->zrayTable($tableParams); //zrayTableHtml
 			sortable:true,
 			getHtml: function(val, rec) {
 				var showInIDEParams = {filePath: rec.filename, line: rec.line, fullUrl: document.location.href};
-				return zray.getFileActions(rec.fileLine, val, rec.file, showInIDEParams);
+				return zray.getFileActions(rec.fileLine, val, rec.filename, showInIDEParams);
 			}
 		});
 	}else{
