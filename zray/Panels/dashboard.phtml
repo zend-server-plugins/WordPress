@@ -113,7 +113,7 @@ $tableParams = array(
 		});
 		var themeTime = 0;
 		jQuery.each(zendDevBar.getStorage('theme').getData(),function(k,v){
-			themeTime += v.time;
+			themeTime += v.dInclusive;
 		});
 		
 		dashboardData.push({
