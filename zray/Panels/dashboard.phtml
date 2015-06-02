@@ -64,10 +64,7 @@ $tableParams = array(
 
 
 	zray.registerDataHandler('WordPress', 'generalInfo', function(extensionData, requestData) {
-		generalInfoData=extensionData;
-		loadGeneralInfo();
-	});
-	zray.registerDataHandler('WordPress', 'time', function(extensionData, requestData) {
+		// collect time from sql queries
 		queriesCount=requestData.SqlQueries.length;
 		var runTime = requestData.Runtime;
 		jQuery.each(runTime, function(key){
@@ -83,6 +80,10 @@ $tableParams = array(
 		});
 
 		timeTotal += total;
+	    	// finish collecting time
+	    
+		generalInfoData=extensionData;
+		loadGeneralInfo();
 	});
 
 	function loadGeneralInfo(){
