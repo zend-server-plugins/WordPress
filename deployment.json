@@ -1,8 +1,14 @@
 {
   "name" : "wordpress",
   "display_name" : "WordPress",
-  "version" : "1.0.1",
+  "version" : "1.0.2",
   "type": ["zray", "route"],
   "logo": "logo.png",
-  "eula": "LICENSE.txt"
+  "eula": "LICENSE.txt",
+  "readme": "README.txt",
+  "dependencies": {
+    "plugin": {
+        "min": "1.0.0"
+    }
+  }
 }
