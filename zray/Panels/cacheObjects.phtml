@@ -113,7 +113,7 @@ $tableParams = array(
 	       	var ctx = document.getElementById("cache-statistics-chart").getContext("2d");
 	       	var myPie = new Chart(ctx).Pie(pieData, options);
 	       	var legendText = myPie.generateLegend();
-	        $zendDevBar('#cache-statistics-chart-lagend').append(legendText);
+	        $zendDevBar('#cache-statistics-chart-lagend').empty().append(legendText);
 		});
 	})();
 })();
