@@ -150,7 +150,7 @@ $tableParams = array(
 	
 		var myPie = new Chart(ctx).Pie(pieData, options);
 		var legendText = myPie.generateLegend();
-		$zendDevBar('#dashboard-chart-lagend').append(legendText);
+		$zendDevBar('#dashboard-chart-lagend').empty().append(legendText);
 		
 		storage.setData(generalInfoData);
 	}
