@@ -211,7 +211,7 @@ $tableParams = array(
 	
 		var myPie = new Chart(ctx).Pie(pieData, options);
 		var legendText = myPie.generateLegend();
-		$zendDevBar('#plugins-chart-lagend').append(legendText);
+		$zendDevBar('#plugins-chart-lagend').empty().append(legendText);
 		
 		
 	}
