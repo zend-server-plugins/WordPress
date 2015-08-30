@@ -23,6 +23,7 @@ $zre = new \ZRayExtension('WordPress');
 
 $zre->setMetadata(array(
 	'logo' => __DIR__ . DIRECTORY_SEPARATOR . 'logo.png',
+    'actionsBaseUrl' => $_SERVER["REQUEST_URI"],
 ));
 
 $zre->setEnabledAfter('wp_initial_constants');
@@ -62,5 +63,24 @@ $zre->traceFunction('wp_initial_constants',function(){}, function() use ($zre) {
 	$zre->traceFunction('wp_cache_close', function(){}, array($zrayWordpress, 'beforeExit'));
 });
 
-	
+$zre->attachAction('runCron', 'ZRayWordpress\shutdown', function(){ 
+    
+    try {
+        wp_schedule_single_event(time()-1, $_POST['hook'], array('ZRayAction' => true));
+    } catch(Exception $e) {
+        echo json_encode(array('success' => false));
+    }
+    $crons_arr = array();
+    try{
+        include_once 'WordpressCrons.php';
+        $wordPressCrons = new WordpressCrons();
+        $crons_arr = $wordPressCrons->getCrons();
+    } catch(Exception $e) { }
+    echo json_encode(array('success' => true, 'crons' => $crons_arr));
+});
+    
+function shutdown() {}
+if (isset($_POST['ZRayAction'])) {
+    register_shutdown_function('ZRayWordpress\shutdown');
+}
 ?>

@@ -1,7 +1,9 @@
 <?php
 $tableParams = array(
 	'tableId' 			=> 'wordpress-crons-tree',
-    'tableWidth'        => '4',
+    'tableWidth'        => '3-wide',
+    'summaryTableId'    => 'wordpress-crons-summary-table',
+    'summaryTableWidth' => '1-narrow',
 );
 ?>
 <div>
@@ -13,6 +15,30 @@ $tableParams = array(
 
 <script type="text/javascript">
 
+function runCron(hook){
+    var params = {'hook': hook};
+    zray.runAction('WordPress', 'runCron', params, function(response) {
+        try { 
+            var jsonResponse = JSON.parse(response);
+            if (jsonResponse.success) {
+                alert('Cron executed successfuly!');
+            } else {
+                throw 'Error';
+            }
+            jsonResponse.crons.map(function(item) {
+                if (item.arguments.indexOf('[ZRayAction] => 1') > -1) {
+                    item.zrayAction = 'Z-Ray Actions';
+                } else {
+                    item.zrayAction = 'Regular';
+                }
+            });
+            var storage = zray.getStorage('crons');
+            storage.setData(jsonResponse.crons);
+        } catch(e) {
+            alert('Can\'t execute cron, please try again.');
+        }
+    });
+}
 (function() {
 	var storage = zray.getStorage('crons');
 	
@@ -30,10 +56,13 @@ $tableParams = array(
 			label: 'Schedule',
 			propertyName: 'schedule',
 			sortable:true,
-			width: '150px'
+			width: '150px',
+            getHtml: function(val, rec) {
+                    return val || 'Once';
+            }
 		},
 		{
-			label: 'Next Execution',
+			label: 'Execution Time',
 			propertyName: 'nextExecution',
 			sortable:true,
 			width: '100px'
@@ -42,12 +71,88 @@ $tableParams = array(
 			label: 'Arguments',
 			sortable:true,
 			propertyName: 'arguments'
+		},
+		{
+			label: 'Actions',
+			sortable:false,
+			propertyName: 'actions',
+            getHtml: function(val, rec) {
+                return '<a style="cursor:pointer;" onclick="runCron(\''+rec.hook+'\')">Run Now</a>';
+            }
 		}
 	]);
+	var summaryTable = zray.createSummaryTable(storage, jQuery('#<?php echo $tableParams['summaryTableId']; ?>'));
+    var storedStateForCronZray = (zendDevBar.cookieParams && typeof (zendDevBar.cookieParams.displayWPCronZray) != 'undefined') ? 
+				zendDevBar.cookieParams.displayWPCronZray : false; //false - the default of show core hooks
+	var hideCronZray = (storedStateForCronZray == 0);
 	
+	summaryTable.setTableHeaderHtml('<th colspan="100%">Show</th>');
+	// set the columns structure
+	summaryTable.setColumns([
+       {
+            label: ' ',
+            propertyName: 'zrayAction',
+            width: 40,
+            getHtml: function(value, record) {
+                return summaryTable.createCheckboxColumn(value, record, summaryTable);
+            }
+       },
+       {
+           label: 'Zray Actions Crons',
+           propertyName: 'zrayAction',
+           width: '80%'
+       },
+       {
+			label: 'Count',
+			propertyName: 'count',
+			width: '10%',
+			attributes: {'class': 'zdb-numerical'},
+			getHtml: function(val) {
+				return '(' + val + ')';
+			}
+		}
+    ]);
+	
+
+	// set by which column the user choice will filter
+	summaryTable.setFilterColumn('zrayAction');
+
+	// set callback function to create the table rows from all the data
+	// return an array of rows, with columns that match to setColumns
+	summaryTable.setUpdateCallback(function (data) {
+		if (! data) return [];
+
+		var aggregated = {};
+		$zendDevBar.each(data, function(key, cron){
+			if (aggregated[cron.zrayAction]) {
+				aggregated[cron.zrayAction]++;
+			} else {
+				aggregated[cron.zrayAction] = 1;
+			}
+		});
+
+		if (Object.keys(aggregated).length == 0) {
+			return [];
+		}
+		
+		var normalized = [];
+		normalized.push({'zrayAction': 'All', 'count': jQuery.map(aggregated, function(v){return v}).reduce(function(acc, item){return acc += item})});
+		
+		return normalized.concat($zendDevBar.map(aggregated, function(count, zrayAction){
+			return {'zrayAction': zrayAction, 'count': count};
+		}));
+	});
+    
 	(function() {
 		zray.registerDataHandler('WordPress', 'crons', function(extensionData, requestData) {
-			storage.setData(extensionData);
+			extensionData.map(function(item) {
+                if (item.arguments.indexOf('[ZRayAction] => 1') > -1) {
+                    item.zrayAction = 'Z-Ray Actions';
+                } else {
+                    item.zrayAction = 'Regular';
+                }
+            });
+            storage.setData(extensionData);
 		});
 	})();
 })();
