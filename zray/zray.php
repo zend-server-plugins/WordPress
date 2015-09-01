@@ -78,6 +78,17 @@ $zre->attachAction('runCron', 'ZRayWordpress\shutdown', function(){
     } catch(Exception $e) { }
     echo json_encode(array('success' => true, 'crons' => $crons_arr));
 });
+
+$zre->attachAction('runWPQuery', 'ZRayWordpress\shutdown', function(){ 
+    
+    try {
+        $result = new \WP_Query( $_POST['query'] );
+    } catch(Exception $e) {
+        echo json_encode(array('success' => false));
+    }
+    
+    echo json_encode(array('success' => true, 'result' => $result));
+});
     
 function shutdown() {}
 if (isset($_POST['ZRayAction'])) {
