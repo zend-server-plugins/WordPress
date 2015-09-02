@@ -21,9 +21,12 @@ class Wordpress {
 
 $zre = new \ZRayExtension('WordPress');
 
+$protocol = (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') ? 'https' : 'http';
+$actionBaseUrl = $protocol . '://' . $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] . $_SERVER['REQUEST_URI'];
+
 $zre->setMetadata(array(
 	'logo' => __DIR__ . DIRECTORY_SEPARATOR . 'logo.png',
-    'actionsBaseUrl' => $_SERVER["REQUEST_URI"],
+    'actionsBaseUrl' => $actionBaseUrl,
 ));
 
 $zre->setEnabledAfter('wp_initial_constants');
@@ -81,12 +84,12 @@ $zre->attachAction('runCron', 'ZRayWordpress\shutdown', function(){
 
 $zre->attachAction('runWPQuery', 'ZRayWordpress\shutdown', function(){ 
     
-    try {
-        $result = new \WP_Query( $_POST['query'] );
-    } catch(Exception $e) {
+    if (! $result = new \WP_Query( $_POST['query'] )){
         echo json_encode(array('success' => false));
     }
-    
+    if(http_response_code() == 404){
+        http_response_code (200);
+    }
     echo json_encode(array('success' => true, 'result' => $result));
 });
     

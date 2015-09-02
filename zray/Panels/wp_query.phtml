@@ -43,7 +43,12 @@ function runWPQuery(){
         try { 
             var jsonResponse = JSON.parse(response);
             if (jsonResponse.success) {
-                alert('WP Query loaded successfuly!');
+                if (jsonResponse.result) {
+                   alert('WP Query loaded successfuly!');
+                   if (jsonResponse.result.posts.length == 0) {
+                        alert('WP Query return 0 results');
+                    }
+                }
             } else {
                 throw 'Error';
             }
@@ -52,7 +57,7 @@ function runWPQuery(){
             jQuery('#wp_query_args span').html(this.query);
             
             var storage = zray.getStorage('wp_query');
-            storage.setData(jsonResponse.result);
+            storage.setData(jsonResponse.result.posts);
             
         } catch(e) {
             alert('Can\'t execute query, please try again.');
