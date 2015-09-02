@@ -16,9 +16,12 @@ $tableParams = array(
     text-decoration: initial !important;
     cursor: pointer;
 }
+#zend-dev-bar[actions-enabled="false"] [data-extension="WordPress"] .zray-actions-btn{
+    display:none;
+}
 </style>
 <div>
-<a id="runWPQueryBtn" onclick="runWPQuery();" class="zray-header-btn">Run Custom WP Query</a>
+<a id="runWPQueryBtn" onclick="runWPQuery();" class="zray-header-btn zray-actions-btn">Run Custom WP Query</a>
     <div class="wp-group-items">
 		<div id="wp_query_query"><strong class="zray_wp_title">SQL Query </strong><span></span></div>
 		<div id="wp_query_args"><strong class="zray_wp_title">Query Arguments </strong><span></span></div>
@@ -74,6 +77,7 @@ function runWPQuery(){
 	
 	(function() {
         $('#runWPQueryBtn').appendTo($('[data-name="zrayExtension:WordPress/wp_query"] .zdb-toolbar-detail-header .zdb-col-3-wide'));
+        $('#zend-dev-bar').attr('actions-enabled', zray.actionsEnabled());
 		zray.registerDataHandler('WordPress', 'wp_query', function(extensionData, requestData) {
 			extensionData=extensionData[0];
 			

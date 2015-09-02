@@ -77,7 +77,7 @@ function runCron(hook){
 			sortable:false,
 			propertyName: 'actions',
             getHtml: function(val, rec) {
-                return '<a style="cursor:pointer;" onclick="runCron(\''+rec.hook+'\')">Run Now</a>';
+                return '<a style="cursor:pointer;" class="zray-actions-btn" onclick="runCron(\''+rec.hook+'\')">Run Now</a>';
             }
 		}
 	]);

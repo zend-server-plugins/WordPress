@@ -87,9 +87,8 @@ $zre->attachAction('runWPQuery', 'ZRayWordpress\shutdown', function(){
     if (! $result = new \WP_Query( $_POST['query'] )){
         echo json_encode(array('success' => false));
     }
-    if(http_response_code() == 404){
-        http_response_code (200);
-    }
+    
+    http_response_code (200);
     echo json_encode(array('success' => true, 'result' => $result));
 });
     
