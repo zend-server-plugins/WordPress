@@ -26,8 +26,8 @@ function runCron(hook){
                 throw 'Error';
             }
             jsonResponse.crons.map(function(item) {
-                if (item.arguments.indexOf('[ZRayAction] => 1') > -1) {
-                    item.zrayAction = 'Z-Ray Actions';
+                if (item.arguments.indexOf('[Triggered By Z-Ray] => 1') > -1) {
+                    item.zrayAction = 'Triggered By Z-Ray';
                 } else {
                     item.zrayAction = 'Regular';
                 }
@@ -146,8 +146,8 @@ function runCron(hook){
 	(function() {
 		zray.registerDataHandler('WordPress', 'crons', function(extensionData, requestData) {
 			extensionData.map(function(item) {
-                if (item.arguments.indexOf('[ZRayAction] => 1') > -1) {
-                    item.zrayAction = 'Z-Ray Actions';
+                if (item.arguments.indexOf('[Triggered By Z-Ray] => 1') > -1) {
+                    item.zrayAction = 'Triggered By Z-Ray';
                 } else {
                     item.zrayAction = 'Regular';
                 }

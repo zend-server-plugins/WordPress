@@ -1,0 +1,160 @@
+<?php
+$tableParams = array(
+	'tableId' 			=> 'wordpress-wp-custom-query-tree',
+    'tableWidth'        => '4',
+);
+?>
+<style>
+#zend-dev-bar  a#runWPQueryBtn {
+    padding: 3px 8px;
+    background: #1471A1;
+    color: #fff;
+    border-top-right-radius: 5px;
+    font-size: 11px;
+    text-decoration: initial !important;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    line-height: 22px;
+}
+#zend-dev-bar[actions-enabled="false"] [data-extension="WordPress"] .zray-actions-btn{
+    display:none;
+}
+#wp_custom_query_args #wp_custom_query_input:focus{
+     outline: 0px solid transparent;
+}
+#wp_custom_query_args #wp_custom_query_input {
+    padding-right: 20px;
+    display: inline-block;
+    min-width: 400px;
+    line-height: 30px;
+    border: 0;
+    padding: 0;
+    width: calc(100% - 130px);
+    padding-left: 5px;
+}
+div#wp_custom_query_args {
+    position: relative;
+}
+.zray_wp_title{
+    background: #ececec;
+    padding: 5px;
+    display: inline-block;
+    min-width: 120px;
+    font-size: 13px;
+    vertical-align: top;
+}
+#wp_custom_query_query, #wp_query_query{
+    background: #ececec;
+}
+#zend-dev-bar div.wp-group-items strong{
+        background: #ececec;
+    padding: 5px;
+    display: inline-block;
+    min-width: 120px;
+    font-size: 13px;
+    vertical-align: top;
+        margin-right: 0;
+}
+#zend-dev-bar .wp_query_query_string{
+    display: inline-block;
+    width: calc(100% - 130px);
+    background-color: #fff;
+    padding-left: 10px;
+}
+#zend-dev-bar .wp-group-items>div>span {
+    padding-top: 5px;
+    display: inline-block;
+    padding-bottom: 5px;
+        padding-left: 5px;
+}
+#zend-dev-bar a#runWPQueryBtn.disabled {
+    pointer-events: none;
+    background-color: gray;
+    color: #ccc;
+    cursor:pointer;
+}
+</style>
+<div>
+<form onsubmit="runWPQuery(); return false;">
+    <div class="wp-group-items">
+		<div id="wp_custom_query_args"><strong class="zray_wp_title">WP Query </strong>
+            <input id="wp_custom_query_input" spellcheck="false" placeholder="Type here WP Query (ex. cat=1&year=2015)" />
+            <a id="runWPQueryBtn" onclick="runWPQuery();" class="zray-header-btn zray-actions-btn disabled">Run WP Query</a>
+        </div>
+		<div id="wp_custom_query_query"><strong class="zray_wp_title">SQL Query </strong><span class="wp_query_query_string">&nbsp;</span></div>
+    </div>
+</form>
+	<?php echo $this->zrayTable($tableParams); //zrayTableHtml ?>
+        
+</div>
+
+
+<script type="text/javascript">
+function runWPQuery(){
+    var query = $('#wp_custom_query_input').val();
+    if(query === null){
+        return;
+    }
+    if(query.trim() == ''){
+        return;
+    }
+    $('#runWPQueryBtn').addClass('disabled');
+    
+    var params = {'query': encodeURIComponent(query) };
+    
+    zray.runAction('WordPress', 'runWPQuery', params, function(response) {
+        try { 
+            var jsonResponse = JSON.parse(response);
+            if (jsonResponse.success) {
+                if (jsonResponse.result) {
+                   if (jsonResponse.result.posts.length == 0) {
+                       $('#runWPQueryBtn').removeClass('disabled');
+                    }
+                }
+            } else {
+                throw 'Error';
+            }
+            
+            var storage = zray.getStorage('wp_custom_query');
+            storage.setData(jsonResponse.result.posts);
+            
+            
+            jQuery('#wp_custom_query_input').html(decodeURIComponent(this.query));
+            
+            if(window.hljs){
+                jQuery('#wp_custom_query_query span').html(hljs.highlightAuto(jsonResponse.result.request).value);
+            }else{
+                jQuery('#wp_custom_query_query span').html(jsonResponse.result.request);
+            }			
+            
+        } catch(e) {
+            $('#runWPQueryBtn').removeClass('disabled');
+            alert('Can\'t execute query, please try again.');
+        }
+    }.bind(params));
+}
+(function() {
+	var storage = zray.getStorage('wp_custom_query');
+	
+	// create main table
+	var maintable = zray.createTreeTable(storage, jQuery('#<?php echo $tableParams['tableId']; ?>'));
+	
+	(function() {
+        $('#zend-dev-bar').attr('actions-enabled', zray.actionsEnabled());
+        if(!zray.actionsEnabled()){
+            $('[data-name="zrayExtension:WordPress/wp_custom_query"]').hide();
+        }
+        $('#wp_custom_query_input').on('keydown',function(){
+            if($('#wp_custom_query_input').val().trim() != ''){
+                $('#runWPQueryBtn').removeClass('disabled');
+            }else{
+                $('#runWPQueryBtn').addClass('disabled');
+            }
+        });
+	})();
+})();
+</script>
+

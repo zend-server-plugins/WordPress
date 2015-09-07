@@ -4,27 +4,10 @@ $tableParams = array(
     'tableWidth'        => '4',
 );
 ?>
-<style>
-#zend-dev-bar .zray-header-btn{
-    float: right;
-    padding: 3px 8px;
-    background: #1471A1;
-    color: #fff;
-    border-radius: 5px;
-    font-size: 11px;
-    margin-right: 10px;
-    text-decoration: initial !important;
-    cursor: pointer;
-}
-#zend-dev-bar[actions-enabled="false"] [data-extension="WordPress"] .zray-actions-btn{
-    display:none;
-}
-</style>
 <div>
-<a id="runWPQueryBtn" onclick="runWPQuery();" class="zray-header-btn zray-actions-btn">Run Custom WP Query</a>
     <div class="wp-group-items">
-		<div id="wp_query_query"><strong class="zray_wp_title">SQL Query </strong><span></span></div>
-		<div id="wp_query_args"><strong class="zray_wp_title">Query Arguments </strong><span></span></div>
+		<div id="wp_query_args"><strong class="zray_wp_title">WP Query </strong><span>&nbsp;</span></div>
+		<div id="wp_query_query"><strong class="zray_wp_title">SQL Query </strong><span class="wp_query_query_string">&nbsp;</span></div>
     </div>
 	<?php echo $this->zrayTable($tableParams); //zrayTableHtml ?>
         
@@ -32,41 +15,7 @@ $tableParams = array(
 
 
 <script type="text/javascript">
-function runWPQuery(){
-    var query = prompt('Please type WP Query here:');
-    if(query === null){
-        return;
-    }
-    if(query.trim() == ''){
-        alert('Invalid Query');
-        return;
-    }
-    var params = {'query': query};
-    zray.runAction('WordPress', 'runWPQuery', params, function(response) {
-        try { 
-            var jsonResponse = JSON.parse(response);
-            if (jsonResponse.success) {
-                if (jsonResponse.result) {
-                   alert('WP Query loaded successfuly!');
-                   if (jsonResponse.result.posts.length == 0) {
-                        alert('WP Query return 0 results');
-                    }
-                }
-            } else {
-                throw 'Error';
-            }
-            //$('#wp_query_query>span').html(jsonResponse.result.request);
-            jQuery('#wp_query_query span').html(hljs.highlightAuto(jsonResponse.result.request).value);
-            jQuery('#wp_query_args span').html(this.query);
-            
-            var storage = zray.getStorage('wp_query');
-            storage.setData(jsonResponse.result.posts);
-            
-        } catch(e) {
-            alert('Can\'t execute query, please try again.');
-        }
-    }.bind(params));
-}
+
 (function() {
 	var storage = zray.getStorage('wp_query');
 	
@@ -76,8 +25,6 @@ function runWPQuery(){
 
 	
 	(function() {
-        $('#runWPQueryBtn').appendTo($('[data-name="zrayExtension:WordPress/wp_query"] .zdb-toolbar-detail-header .zdb-col-3-wide'));
-        $('#zend-dev-bar').attr('actions-enabled', zray.actionsEnabled());
 		zray.registerDataHandler('WordPress', 'wp_query', function(extensionData, requestData) {
 			extensionData=extensionData[0];
 			

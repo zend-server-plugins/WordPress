@@ -69,7 +69,7 @@ $zre->traceFunction('wp_initial_constants',function(){}, function() use ($zre) {
 $zre->attachAction('runCron', 'ZRayWordpress\shutdown', function(){ 
     
     try {
-        wp_schedule_single_event(time()-1, $_POST['hook'], array('ZRayAction' => true));
+        wp_schedule_single_event(time()-1, $_POST['hook'], array('Triggered By Z-Ray' => true));
     } catch(Exception $e) {
         echo json_encode(array('success' => false));
     }

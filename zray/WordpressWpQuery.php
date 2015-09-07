@@ -7,7 +7,9 @@ class WordpressWpQuery {
 		public function beforeExit($context, &$storage) {
 		global $wp_query;
 		$this->_wpquery = array ();
+        
 		if (! empty ( $wp_query->query )) {
+            
 			$this->_wpquery ['Query'] = http_build_query ( $wp_query->query );
 		}
 		if (! empty ( $wp_query->request )) {

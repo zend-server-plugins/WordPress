@@ -24,6 +24,12 @@ class Module extends \ZRay\ZRayModule {
 	                'menuTitle' 	=> 'Crons',
 	                'panelTitle'	=> 'Crons',
 				),
+				'wp_custom_query' => array(
+					'display'       => true,
+	                'logo'          => 'logo.png',
+	                'menuTitle' 	=> 'WP Custom Query',
+	                'panelTitle'	=> 'WP Custom Query',
+				),
 				'wp_query' => array(
 					'display'       => true,
 	                'logo'          => 'logo.png',
