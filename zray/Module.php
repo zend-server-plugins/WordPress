@@ -27,8 +27,8 @@ class Module extends \ZRay\ZRayModule {
 				'wp_custom_query' => array(
 					'display'       => true,
 	                'logo'          => 'logo.png',
-	                'menuTitle' 	=> 'WP Custom Query',
-	                'panelTitle'	=> 'WP Custom Query',
+	                'menuTitle' 	=> 'Custom WP Query',
+	                'panelTitle'	=> 'Custom WP Query',
 				),
 				'wp_query' => array(
 					'display'       => true,
