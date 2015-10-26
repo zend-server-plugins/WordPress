@@ -63,9 +63,12 @@ function runCron(hook){
 		},
 		{
 			label: 'Execution Time',
-			propertyName: 'nextExecution',
+			propertyName: 'nextExecutionTime',
 			sortable:true,
-			width: '100px'
+			width: '100px',
+            getHtml: function(val, rec) {
+                return rec.nextExecution;
+            }
 		},
 		{
 			label: 'Arguments',

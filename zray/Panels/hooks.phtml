@@ -85,7 +85,7 @@ $tableParams = array(
 	var hideCoreHooks = (storedStateForCoreHooks == 0);
 	
 	summaryTable.setTableHeaderHtml('<th colspan="100%"><span id="zdb-show-hooks-core" class="zdb-show-summary-checkbox" title="Display entries for WordPress Core hooks">' +
-				'<input type="checkbox" name="zdb-show-hooks-core" style="height:auto;"> Core <span id="zdb-total-silenced-logs"></span>'+
+				'<label><input type="checkbox" name="zdb-show-hooks-core" style="height:auto;"> Core (<span id="zdb-total-wp-core-hooks"></span>)</label>'+
 				'</span>Show</th>');
 	// set the columns structure
 	summaryTable.setColumns([
@@ -113,7 +113,7 @@ $tableParams = array(
 		}
     ]);
 	
-	jQuery('#zdb-show-hooks-core input[type="checkbox"]').prop('checked', storedStateForCoreHooks);
+	
 
 	// set by which column the user choice will filter
 	summaryTable.setFilterColumn('hookType');
@@ -121,6 +121,7 @@ $tableParams = array(
 	// set callback function to create the table rows from all the data
 	// return an array of rows, with columns that match to setColumns
 	summaryTable.setUpdateCallback(function (data) {
+        
 		if (! data) return [];
 
 		var aggregated = {};
@@ -153,6 +154,8 @@ $tableParams = array(
 	
 	zray.registerDataHandler('WordPress', 'core_hooks', function(extensionData, requestData) {
 		storage_core.setData(extensionData);
+        $zendDevBar('#zdb-total-wp-core-hooks').text(storage_core.getData().length);
+        $zendDevBar('#zdb-show-hooks-core input[type="checkbox"]').trigger("change");
 	});
 	
 	zray.registerDataHandler('WordPress', 'hooks', function(extensionData, requestData) {
@@ -162,12 +165,11 @@ $tableParams = array(
 			var coreHooksItems = zendDevBar.getStorage('core_hooks').detachData();
 			zendDevBar.getStorage('hooks').addData(coreHooksItems);
 		}
+        $zendDevBar('#zdb-show-hooks-core input[type="checkbox"]').trigger("change");
 		//jQuery('[data-name="zrayExtension:wordpress/hooks"] .zdb-toolbar-info').append(' ('+extensionData.length+')');
 	});
-	
-	
-	$zendDevBar(document).on('click', '#zdb-show-hooks-core', function(event) {
-			
+    
+	$zendDevBar(document).on('change', '#zdb-show-hooks-core', function(event) {
 		// avoid double event on checkbox click
 		var $chkbx = $zendDevBar(':checkbox', this);
 		if (event.target.type && event.target.type.toLowerCase() == 'checkbox') {
@@ -199,5 +201,7 @@ $tableParams = array(
 		
 		
 	});
+    
+    $zendDevBar('#zdb-show-hooks-core input[type="checkbox"]').prop('checked', storedStateForCoreHooks);
 })();
 </script>
