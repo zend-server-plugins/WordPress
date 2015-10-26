@@ -25,6 +25,7 @@ function runCron(hook){
             } else {
                 throw 'Error';
             }
+            
             jsonResponse.crons.map(function(item) {
                 if (item.arguments.indexOf('[Triggered By Z-Ray] => 1') > -1) {
                     item.zrayAction = 'Triggered By Z-Ray';
