@@ -61,6 +61,9 @@ echo $this->zrayTable($tableParams); //zrayTableHtml
 	zray.registerDataHandler('WordPress', 'generalInfo', function(generalInfoData, requestData) {
 		zendDevBar.showData('functions');
 		jQuery.each(generalInfoData,function(k,v){
+			if (typeof v.name == "undefined") {
+				return;
+			}
 			switch(v.name.toLowerCase()){
 				case 'template':
 					template.name = v.value;
