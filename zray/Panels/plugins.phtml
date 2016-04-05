@@ -110,12 +110,18 @@ $tableParams = array(
 		var plugins_dirs = {};
 		var plugins_hashmap = {};
 		jQuery.each(pluginsData, function(k,v){ 
+			if (typeof v.path == "undefined") {
+				return;
+			}
 			var plugin_dir = v.path.split('/')[0];
 			plugins_dirs[plugin_dir] = 0;
 			plugins_hashmap[plugin_dir]=v.name;
 			
 		});
 		jQuery.each(generalInfoData,function(k,v){
+			if (typeof v.name == "undefined") {
+				return;
+			}
 			switch(v.name.toLowerCase()){
 				case 'plugins directory':
 					plugins_dir = v.value;
